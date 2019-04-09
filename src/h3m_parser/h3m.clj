@@ -96,7 +96,7 @@
    :value :byte))
 
 
-(def artifact
+(def artifacts
   (codec/cond-codec
    :slots (b/repeated :short-le :length 16)
    :unknown-slot :short-le
@@ -112,7 +112,7 @@
    :secondary-skills? codec/byte->bool
    :secondary-skills #(when (:secondary-skills? %1) (b/repeated secondary-skill :prefix :int-le))
    :artifacts? codec/byte->bool
-   :artifacts #(when (:artifacts? %1) artifact)
+   :artifacts #(when (:artifacts? %1) artifacts)
    :bio? codec/byte->bool
    :bio #(when (:bio? %1) codec/int-sized-string)
    :sex :byte
@@ -140,7 +140,7 @@
    :active-cells [:int-le :short-le]
    :terrain-type :short-le
    :terrain-group :short-le
-   :object-id codec/int->object
+   :object codec/int->object
    :class-sub-id :int-le
    :group :ubyte
    :placement-order :ubyte
@@ -153,12 +153,16 @@
    :count :short-le))
 
 
+(def creature-set
+  (b/repeated creature :length 7))
+
+
 (def message-with-guard
   (codec/cond-codec
    :message? codec/byte->bool
    :message #(when (:message? %1) codec/int-sized-string)
    :guards? #(when (:message? %1) codec/byte->bool)
-   :guards #(when (:guards? %1) (b/repeated creature :length 7))
+   :guards #(when (:guards? %1) creature-set)
    :unknown #(when (:message? %1) codec/byte->bool)))
 
 
@@ -187,17 +191,136 @@
 
 (def object-hero
   (codec/cond-codec
-   ;; TODO
+   :id :int-le
+   :owner :byte
+   :sub-id :byte
+   :name? codec/byte->bool
+   :name #(when (:name? %1) codec/int-sized-string)
+   :expirience? codec/byte->bool
+   :expirience #(when (:expirience? %1) :int-le)
+   :portrait? codec/byte->bool
+   :portrait #(when (:portrait? %1) :byte)
+   :secondary-skills? codec/byte->bool
+   :secondary-skills #(when (:secondary-skills? %1) (b/repeated secondary-skill :prefix :int-le))
+   :garrison? codec/byte->bool
+   :garrison #(when (:garrison? %1) creature-set)
+   :formation :byte
+   :artifacts artifacts
+   :patrol-radius :byte
+   :bio? codec/byte->bool
+   :bio #(when (:bio? %1) codec/int-sized-string)
+   :sex :byte
+   :spells (b/repeated :byte :length 9)
+   :primary-skills? codec/byte->bool
+   :primary-skills #(when (:primary-skills? %1) (b/repeated :byte :length 4))))
+   :unknown (b/repeated :byte :length 16)
+   ))
+
+
+(def object-monster
+  (codec/cond-codec
+   :unknown :int-le
+   :count :short-le
+   :character :byte
+   :msg? codec/byte->bool
+   :msg #(when (:msg? %1)
+           (b/ordered-map
+            :text codec/int-sized-string
+            :resources resources
+            :unknown :short-le))
+   :never-flees codec/byte->bool
+   :never-grow codec/byte->bool
+   :unknown :short-le))
+
+
+(def object-message
+  (b/ordered-map
+   :message codec/int-sized-string
+   :unknown :int-le))
+
+
+(def object-seer-hut
+  (codec/cond-codec
+    ;;todo
+   ))
+
+
+(def object-witch-hut
+  (codec/cond-codec
+    ;;todo
    ))
 
 
 (defn get-codec-by-def-id
   [def-info]
-  (case (:object-id def-info)
-    26 object-event
-    34 object-hero
-    70 object-hero
-    62 object-hero
+  (case (:object def-info)
+    :event object-event
+
+    :hero object-hero
+    :random-hero object-hero
+    :prison object-hero
+
+    :monster object-monster
+    :random-monster object-monster
+    :random-monster-l1 object-monster
+    :random-monster-l2 object-monster
+    :random-monster-l3 object-monster
+    :random-monster-l4 object-monster
+    :random-monster-l5 object-monster
+    :random-monster-l6 object-monster
+    :random-monster-l7 object-monster
+
+    :ocean-bottle object-message
+    :sign object-message
+
+    :seer-hut object-seer-hut
+
+    :witch-hut object-witch-hut
+
+    :scholar object-scholar
+
+    :garrison object-garrison
+    :garrison2 object-garrison
+
+    :artifact object-artifact
+    :random-art object-artifact
+    :random-treasure-art object-artifact
+    :random-minor-art object-artifact
+    :random-major-art object-artifact
+    :random-relic-art object-artifact
+    :spell-scroll object-artifact
+
+    :random-resource object-resource
+    :resource object-resource
+
+    :random-town object-town
+    :town object-town
+
+    :mine object-mine
+    :abandoned-mine object-mine
+    :shrine-of-magic-incantation object-mine
+    :shrine-of-magic-gesture object-mine
+    :shrine-of-magic-thought object-mine
+    :grail object-mine
+
+    :creature-generator1 object-creature-generator
+    :creature-generator2 object-creature-generator
+    :creature-generator3 object-creature-generator
+    :creature-generator4 object-creature-generator
+
+    :pandoras-box object-pandoras-box
+
+    :random-dwelling object-random-dwelling
+    :random-dwelling-lvl object-random-dwelling
+    :random-dwelling-faction object-random-dwelling
+
+    :quest-guard object-quest-guard
+
+    :shipyard object-ship-yard
+
+    :hero-placeholder object-hero-placeholder
+
+    :lighthouse object-lighthous
     nil))
 
 
@@ -240,5 +363,4 @@
                                                    2
                                                    1)))
    :defs (b/repeated def-info :prefix :int-le)
-  ;  :objects #(b/repeated (get-object-codec (:defs %1)) :prefix :int-le)
-   ))
+   :objects #(b/repeated (get-object-codec (:defs %1)) :prefix :int-le)))
