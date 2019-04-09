@@ -169,6 +169,11 @@
 (def resources (b/repeated :int-le :length 7))
 
 
+(defn quest [mission-type]
+  (case mission-type
+    2 nil))
+
+
 (def object-event
   (codec/cond-codec
    :message message-with-guard
@@ -212,11 +217,11 @@
    :sex :byte
    :spells (b/repeated :byte :length 9)
    :primary-skills? codec/byte->bool
-   :primary-skills #(when (:primary-skills? %1) (b/repeated :byte :length 4))))
-   :unknown (b/repeated :byte :length 16)
-   ))
+   :primary-skills #(when (:primary-skills? %1) (b/repeated :byte :length 4))
+   :unknown (b/repeated :byte :length 16)))
 
 
+;; TODO save random-monster level
 (def object-monster
   (codec/cond-codec
    :unknown :int-le
@@ -239,16 +244,53 @@
    :unknown :int-le))
 
 
+(def reward
+  (codec/cond-codec
+   :type :byte
+   :reward #(case (:type %1)
+             ; 0 NOTHING
+              1 :int-le ; EXPERIENCE
+              2 :int-le ; MANA_POINTS
+              3 :byte ; MORALE_BONUS
+              4 :byte ; LUCK_BONUS
+              5 [:byte :int-le] ; RESOURCES
+              6 [:byte :byte] ; PRIMARY_SKILL
+              7 [:byte :byte] ; SECONDARY_SKILL
+              8 [:short-le] ; ARTIFACT
+              9 :byte ; SPELL
+              10 :int-le ; CREATURE
+              nil)))
+
+
 (def object-seer-hut
   (codec/cond-codec
-    ;;todo
-   ))
+   :mission-type :byte
+   :quest #(quest (:mission-type %1))
+   :reward #(if (> 0 (:mission-type %1))
+              reward
+              [:byte :byte :byte])))
 
 
-(def object-witch-hut
-  (codec/cond-codec
-    ;;todo
-   ))
+(def object-witch-hut :int-le)
+
+
+(def object-scholar
+  (b/ordered-map
+   :unknown-1 (b/repeated :byte :length 2)
+   :unknown-2 (b/repeated :byte :length 6)))
+
+
+(def object-garrison
+  (b/ordered-map
+   :unknown-1 :int-le
+   :creatures creature-set
+   :unknown-2 codec/byte->bool
+   :unknown-3 (b/repeated :byte :length 8)))
+
+
+(def object-artifact
+  (b/ordered-map
+   :message nil))
 
 
 (defn get-codec-by-def-id
