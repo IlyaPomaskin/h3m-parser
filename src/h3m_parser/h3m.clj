@@ -322,7 +322,7 @@
 
 
 (def object-town
-  (b/ordered-map
+  (codec/cond-codec
    :id :int-le
    :owner :byte
    :name? codec/byte->bool
@@ -335,7 +335,8 @@
                  (b/ordered-map
                   :built (b/repeated :byte :length 6)
                   :fobidden (b/repeated :byte :length 6))
-                 :unknown codec/byte->bool)
+                 (b/ordered-map
+                  :unknown codec/byte->bool))
    :spells (b/repeated :byte :length 9)
    :unknown (b/repeated :byte :length 9)
    :events (b/repeated town-event :prefix :int-le)
@@ -353,22 +354,23 @@
 
 
 (def object-pandoras-box
-  :message message-with-guard
-  :expirience :int-le
-  :mana :int-le
-  :morale :byte
-  :luck :byte
-  :resources resources
-  :primary-skills (b/repeated :byte :length 4)
-  :abillities (b/repeated :short-le :prefix :byte)
-  :arts (b/repeated :short-le :prefix :byte)
-  :spells (b/repeated :byte :prefix :byte)
-  :creatures (b/repeated :byte :prefix :byte)
-  :unknown (b/repeated :byte :length 8))
+  (codec/cond-codec
+   :message message-with-guard
+   :expirience :int-le
+   :mana :int-le
+   :morale :byte
+   :luck :byte
+   :resources resources
+   :primary-skills (b/repeated :byte :length 4)
+   :abillities (b/repeated :short-le :prefix :byte)
+   :arts (b/repeated :short-le :prefix :byte)
+   :spells (b/repeated :byte :prefix :byte)
+   :creatures (b/repeated :byte :prefix :byte)
+   :unknown (b/repeated :byte :length 8)))
 
 
 (def object-random-dwelling
-  (b/ordered-map
+  (codec/cond-codec
    :unknown :int-le
    :castle-index :int-le
    :allowed-town #(when (= 1 (:castle-index %1)) :short-le) ; TODO bits
@@ -377,7 +379,7 @@
 
 
 (def object-random-dwelling-lvl
-  (b/ordered-map
+  (codec/cond-codec
    :unknown :int-le
    :castle-index :int-le
    :allowed-town #(when (= 1 (:castle-index %1)) :short-le) ; TODO bits
@@ -392,7 +394,7 @@
 
 
 (def object-quest-guard
-  (b/ordered-map
+  (codec/cond-codec
    :mission-type :byte
    :quest #(quest (:mission-type %1))))
 

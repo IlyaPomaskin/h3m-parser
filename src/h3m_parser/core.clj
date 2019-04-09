@@ -22,5 +22,6 @@
             ; (dissoc :placeholder-3)
             ; (dissoc :terrain)
             ; (dissoc :defs)
+            (get-in [:defs 0])
             (pp/pprint))))
 
