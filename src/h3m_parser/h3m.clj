@@ -391,6 +391,25 @@
    :max :byte))
 
 
+(def object-quest-guard
+  (b/ordered-map
+   :mission-type :byte
+   :quest #(quest (:mission-type %1))))
+
+
+(def object-shipyard :int-le)
+
+
+(def object-hero-placeholder
+  (codec/cond-codec
+   :unknown-1 :byte
+   :hero-type-id :ubyte
+   :unknown-2 #(when (= 255 (:hero-type-id %1)) :byte)))
+
+
+(def object-lighthous :int-le)
+
+
 (defn get-codec-by-def-id
   [def-info]
   (case (:object def-info)
@@ -457,7 +476,7 @@
 
     :quest-guard object-quest-guard
 
-    :shipyard object-ship-yard
+    :shipyard object-shipyard
 
     :hero-placeholder object-hero-placeholder
 
