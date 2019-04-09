@@ -290,7 +290,57 @@
 
 (def object-artifact
   (b/ordered-map
-   :message nil))
+   :message message-with-guard))
+
+
+(def object-spell
+  (b/ordered-map
+   :message message-with-guard
+   :unknown :int-le))
+
+
+(def object-resource
+  (b/ordered-map
+   :message message-with-guard
+   :unknown-1 :int-le
+   :unknown-2 :int-le))
+
+
+(def town-event
+  (b/ordered-map
+   :msg-1 codec/int-sized-string
+   :msg-2 codec/int-sized-string
+   :resources resources
+   :unknown-1 :byte
+   :unknown-2 :byte
+   :computer-affected :byte
+   :first-occurence :short-le
+   :next-occurence :byte
+   :unknown-3 (b/repeated :byte :length 17)
+   :building (b/repeated :byte :length 6)
+   :creatures (b/repeated :byte :length 14)))
+
+
+(def object-town
+  (b/ordered-map
+   :id :int-le
+   :owner :byte
+   :name? codec/byte->bool
+   :name #(when (:name? %1) codec/int-sized-string)
+   :garrison? codec/byte->bool
+   :garrison #(when (:garrison? %1) creature-set)
+   :formation codec/byte->bool
+   :buildings? codec/byte->bool
+   :buildings #(if (:buildings? %1)
+                 (b/ordered-map
+                  :built (b/repeated :byte :length 6)
+                  :fobidden (b/repeated :byte :length 6))
+                 :unknown codec/byte->bool)
+   :spells (b/repeated :byte :length 9)
+   :unknown (b/repeated :byte :length 9)
+   :events (b/repeated town-event :prefix :int-le)
+   :unknown-4 (b/repeated :byte :length 4)
+   :unknown-5 (b/repeated :byte :length 3)))
 
 
 (defn get-codec-by-def-id
@@ -330,7 +380,8 @@
     :random-minor-art object-artifact
     :random-major-art object-artifact
     :random-relic-art object-artifact
-    :spell-scroll object-artifact
+
+    :spell-scroll object-spell
 
     :random-resource object-resource
     :resource object-resource
