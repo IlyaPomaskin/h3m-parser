@@ -234,9 +234,7 @@
    :spells (b/repeated :byte :length 9)
    :abillities (b/repeated :byte :length 4)
    :rumors (b/repeated rumor :prefix :int-le)
-   :predefined-heroes (b/repeated (codec/cond-codec
-                                   :defined? codec/byte->bool
-                                   :hero #(when (:defined %1) defined-hero)) :length 156)
+   :predefined-heroes (b/repeated (b/repeated defined-hero :prefix :ubyte) :length 156)
    :terrain #(b/repeated terrain-tile :length (* (* (:size %1) (:size %1))
                                                  (if (:has-underground? %1)
                                                    2
