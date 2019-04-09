@@ -318,7 +318,8 @@
    :next-occurence :byte
    :unknown-3 (b/repeated :byte :length 17)
    :building (b/repeated :byte :length 6)
-   :creatures (b/repeated :byte :length 14)))
+   :creatures (b/repeated :byte :length 14)
+   :unknown-4 :int-le))
 
 
 (def object-town
@@ -340,7 +341,7 @@
    :spells (b/repeated :byte :length 9)
    :unknown (b/repeated :byte :length 9)
    :events (b/repeated town-event :prefix :int-le)
-   :unknown-4 (b/repeated :byte :length 4)
+   :unknown-4 (b/repeated :byte :length 1)
    :unknown-5 (b/repeated :byte :length 3)))
 
 
@@ -412,7 +413,7 @@
 (def object-lighthous :int-le)
 
 
-(defn get-codec-by-def-id
+(defn def->codec
   [def-info]
   (case (:object def-info)
     :event object-event
@@ -494,7 +495,10 @@
    :z :ubyte
    :def-index :int-le
    :placeholder (b/repeated :byte :length 5)
-   :info #(get-codec-by-def-id (nth defs-list (:def-index %1)))))
+   :info #(def->codec (do
+                        (println %1)
+                        (println (nth defs-list (:def-index %1)))
+                        (nth defs-list (:def-index %1))))))
 
 
 (def root
