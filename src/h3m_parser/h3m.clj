@@ -343,6 +343,54 @@
    :unknown-5 (b/repeated :byte :length 3)))
 
 
+(def object-mine :int-le)
+
+
+(def object-creature-generator
+  (b/ordered-map
+   :color :byte
+   :unknown (b/repeated :byte :length 3)))
+
+
+(def object-pandoras-box
+  :message message-with-guard
+  :expirience :int-le
+  :mana :int-le
+  :morale :byte
+  :luck :byte
+  :resources resources
+  :primary-skills (b/repeated :byte :length 4)
+  :abillities (b/repeated :short-le :prefix :byte)
+  :arts (b/repeated :short-le :prefix :byte)
+  :spells (b/repeated :byte :prefix :byte)
+  :creatures (b/repeated :byte :prefix :byte)
+  :unknown (b/repeated :byte :length 8))
+
+
+(def object-random-dwelling
+  (b/ordered-map
+   :unknown :int-le
+   :castle-index :int-le
+   :allowed-town #(when (= 1 (:castle-index %1)) :short-le) ; TODO bits
+   :min :byte
+   :max :byte))
+
+
+(def object-random-dwelling-lvl
+  (b/ordered-map
+   :unknown :int-le
+   :castle-index :int-le
+   :allowed-town #(when (= 1 (:castle-index %1)) :short-le) ; TODO bits
+   ))
+
+
+(def object-random-dwelling-faction
+  (b/ordered-map
+   :unknown :int-le
+   :min :byte
+   :max :byte))
+
+
 (defn get-codec-by-def-id
   [def-info]
   (case (:object def-info)
@@ -404,8 +452,8 @@
     :pandoras-box object-pandoras-box
 
     :random-dwelling object-random-dwelling
-    :random-dwelling-lvl object-random-dwelling
-    :random-dwelling-faction object-random-dwelling
+    :random-dwelling-lvl object-random-dwelling-lvl
+    :random-dwelling-faction object-random-dwelling-faction
 
     :quest-guard object-quest-guard
 
