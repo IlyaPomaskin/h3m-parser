@@ -1,6 +1,7 @@
 # h3m-parser
 
-Heroes of Might and Magic III maps parser
+Heroes of Might and Magic III maps parser.
+Parse only visual elements. A lot of gameplay elements are omit or unknown.
 
 ## Usage
 
