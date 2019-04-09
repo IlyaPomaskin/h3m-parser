@@ -7,24 +7,6 @@
             [clojure.java.io :as io]))
 
 
-(defn stream->bytes [is]
-  (loop [b (.read is) accum []]
-    (if (< b 0)
-      accum
-      (recur (.read is) (conj accum b)))))
-
-
-(defn stream->byte-array [is]
-  (let [baos (java.io.ByteArrayOutputStream.)]
-    (io/copy is baos)
-    (.toByteArray baos)))
-
-
-(defn read-h3m [filename]
-  (with-open [in (new java.util.zip.GZIPInputStream (io/input-stream filename) 1)]
-    (stream->bytes in)))
-
-
 (defn -main [file-path]
   (if (not (.exists (io/file file-path)))
     (println "File" file-path "not exists")
