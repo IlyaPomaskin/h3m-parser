@@ -1,5 +1,6 @@
 (ns h3m-parser.h3m
   (:require [org.clojars.smee.binary.core :as b]
+            [clojure.pprint :as pp]
             [h3m-parser.codec :as codec]))
 
 
@@ -163,15 +164,32 @@
    :message #(when (:message? %1) codec/int-sized-string)
    :guards? #(when (:message? %1) codec/byte->bool)
    :guards #(when (:guards? %1) creature-set)
-   :unknown #(when (:message? %1) codec/byte->bool)))
+   :unknown #(when (:message? %1) :int-le)))
 
 
 (def resources (b/repeated :int-le :length 7))
 
 
-(defn quest [mission-type]
-  (case mission-type
-    2 nil))
+(def quest
+  (codec/cond-codec
+   :mission-type :byte
+   :quest #(when (:mission-type %1)
+             (b/ordered-map
+              :mission-data (case (:mission-type %1)
+                              1 :int-le
+                              2 :int-le
+                              3 :int-le
+                              4 :int-le
+                              5 (b/repeated :short-le :prefix :byte)
+                              6 (b/repeated :int-le :prefix :byte)
+                              7 (b/repeated :int-le :length 7)
+                              8 :byte
+                              9 :byte
+                              nil)
+              :unknown-1 :int-le
+              :first-visit-message codec/int-sized-string
+              :next-visit-message codec/int-sized-string
+              :completed-message codec/int-sized-string))))
 
 
 (def object-event
@@ -196,7 +214,7 @@
 
 (def object-hero
   (codec/cond-codec
-   :id :int-le
+   :id :int-be
    :owner :byte
    :sub-id :byte
    :name? codec/byte->bool
@@ -206,19 +224,23 @@
    :portrait? codec/byte->bool
    :portrait #(when (:portrait? %1) :byte)
    :secondary-skills? codec/byte->bool
-   :secondary-skills #(when (:secondary-skills? %1) (b/repeated secondary-skill :prefix :int-le))
+   :secondary-skills #(when (:secondary-skills? %1)
+                        (b/repeated secondary-skill :prefix :int-le))
    :garrison? codec/byte->bool
    :garrison #(when (:garrison? %1) creature-set)
    :formation :byte
    :artifacts artifacts
-   :patrol-radius :byte
+   :patrol-radius :ubyte
    :bio? codec/byte->bool
    :bio #(when (:bio? %1) codec/int-sized-string)
    :sex :byte
    :spells (b/repeated :byte :length 9)
    :primary-skills? codec/byte->bool
    :primary-skills #(when (:primary-skills? %1) (b/repeated :byte :length 4))
-   :unknown (b/repeated :byte :length 16)))
+   :unknown (b/repeated :byte :length 16)
+   :logger #(do
+              (pp/pprint %1)
+              nil)))
 
 
 ;; TODO save random-monster level
@@ -235,7 +257,10 @@
             :unknown :short-le))
    :never-flees codec/byte->bool
    :never-grow codec/byte->bool
-   :unknown :short-le))
+   :unknown :short-le
+   :logger #(do
+              (pp/pprint %1)
+              nil)))
 
 
 (def object-message
@@ -264,8 +289,7 @@
 
 (def object-seer-hut
   (codec/cond-codec
-   :mission-type :byte
-   :quest #(quest (:mission-type %1))
+   :quest quest
    :reward #(if (> 0 (:mission-type %1))
               reward
               [:byte :byte :byte])))
@@ -396,8 +420,7 @@
 
 (def object-quest-guard
   (codec/cond-codec
-   :mission-type :byte
-   :quest #(quest (:mission-type %1))))
+   :quest quest))
 
 
 (def object-shipyard :int-le)
