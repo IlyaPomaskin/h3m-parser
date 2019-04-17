@@ -103,7 +103,11 @@
    :unknown-slot :short-le
    :spellbook :short-le
    :fifth-slot :short-le
-   :bag (b/repeated :short-le :prefix :short-le)))
+   :bag (b/repeated :short-le :prefix :short-le)
+   :logger #(do
+              (pp/pprint "art")
+              (pp/pprint %1)
+              nil)))
 
 
 (def defined-hero
@@ -224,11 +228,14 @@
    :portrait? codec/byte->bool
    :portrait #(when (:portrait? %1) :byte)
    :secondary-skills? codec/byte->bool
-   :secondary-skills #(when (:secondary-skills? %1)
-                        (b/repeated secondary-skill :prefix :int-le))
+   :secondary-skills #(when (:secondary-skills? %1) (b/repeated secondary-skill :prefix :int-le))
    :garrison? codec/byte->bool
    :garrison #(when (:garrison? %1) creature-set)
    :formation :byte
+   :logger #(do
+              (pp/pprint "pre arts")
+              (pp/pprint %1)
+              nil)
    :artifacts artifacts
    :patrol-radius :ubyte
    :bio? codec/byte->bool
@@ -239,6 +246,7 @@
    :primary-skills #(when (:primary-skills? %1) (b/repeated :byte :length 4))
    :unknown (b/repeated :byte :length 16)
    :logger #(do
+              (pp/pprint "post arts")
               (pp/pprint %1)
               nil)))
 
