@@ -515,10 +515,7 @@
    :z :ubyte
    :def-index :int-le
    :placeholder (b/repeated :byte :length 5)
-   :info #(def->codec (do
-                        (println %1)
-                        (println (nth defs-list (:def-index %1)))
-                        (nth defs-list (:def-index %1))))))
+   :info #(def->codec (nth defs-list (:def-index %1)))))
 
 
 (def root

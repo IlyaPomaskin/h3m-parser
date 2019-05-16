@@ -4,7 +4,8 @@
             [clojure.pprint :as pp]
             [h3m-parser.objects :as h3m-objects]
             [h3m-parser.h3m :as h3m]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [cheshire.core :refer :all]))
 
 
 (defn -main [file-path]
@@ -15,13 +16,6 @@
             (java.util.zip.GZIPInputStream. 1)
             (io/input-stream)
             (as-> stream (b/decode h3m/root stream))
-            (dissoc :players)
-            (dissoc :predefined-heroes)
-            (dissoc :placeholder-1)
-            (dissoc :placeholder-2)
-            (dissoc :placeholder-3)
-            (dissoc :terrain)
-            ; (dissoc :defs)
-            (get-in [:defs 0])
-            (pp/pprint))))
+            (generate-string {:pretty true})
+            (println))))
 

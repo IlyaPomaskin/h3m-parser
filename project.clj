@@ -5,7 +5,8 @@
             :url "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [smee/binary "0.5.4"]
-                 [gloss "0.2.6"]]
+                 [gloss "0.2.6"]
+                 [cheshire "5.8.1"]]
   :main ^:skip-aot h3m-parser.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})
