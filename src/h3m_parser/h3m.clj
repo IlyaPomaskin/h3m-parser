@@ -279,14 +279,15 @@
               7 [:byte :byte] ; SECONDARY_SKILL
               8 [:short-le] ; ARTIFACT
               9 :byte ; SPELL
-              10 :int-le ; CREATURE
-              nil)))
+              10 [:short-le :short-le] ; CREATURE
+              nil)
+   :unknown :short-le))
 
 
 (def object-seer-hut
   (codec/cond-codec
    :quest quest
-   :reward #(if (> 0 (:mission-type %1))
+   :reward #(if (> (get-in %1 [:quest :mission-type]) 0)
               reward
               [:byte :byte :byte])))
 
