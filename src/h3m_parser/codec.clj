@@ -1,5 +1,6 @@
 (ns h3m-parser.codec
   (:require [org.clojars.smee.binary.core :as b]
+            [clojure.pprint :as pp]
             [h3m-parser.objects :as h3m-objects])
   (:import org.clojars.smee.binary.core.BinaryIO))
 
@@ -44,3 +45,11 @@
 
 
 (def int->object (b/compile-codec :int-le (constantly 99) #(get h3m-objects/object-by-id %1 :no-obj)))
+
+
+(defn logger
+  [prefix]
+  (fn [data]
+    (pp/pprint prefix)
+    (pp/pprint data)
+    nil))
