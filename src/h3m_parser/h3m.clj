@@ -103,11 +103,7 @@
    :unknown-slot :short-le
    :spellbook :short-le
    :fifth-slot :short-le
-   :bag (b/repeated :short-le :prefix :short-le)
-   :logger #(do
-              (pp/pprint "art")
-              (pp/pprint %1)
-              nil)))
+   :bag (b/repeated :short-le :prefix :short-le)))
 
 
 (def defined-hero
@@ -218,7 +214,7 @@
 
 (def object-hero
   (codec/cond-codec
-   :id :int-be
+   :id :int-le
    :owner :byte
    :sub-id :byte
    :name? codec/byte->bool
@@ -232,29 +228,23 @@
    :garrison? codec/byte->bool
    :garrison #(when (:garrison? %1) creature-set)
    :formation :byte
-   :logger #(do
-              (pp/pprint "pre arts")
-              (pp/pprint %1)
-              nil)
-   :artifacts artifacts
+   :artifacts? codec/byte->bool
+   :artifacts #(when (:artifacts? %1) artifacts)
    :patrol-radius :ubyte
    :bio? codec/byte->bool
    :bio #(when (:bio? %1) codec/int-sized-string)
    :sex :byte
-   :spells (b/repeated :byte :length 9)
+   :spells? codec/byte->bool
+   :spells #(when (:spells? %1) (b/repeated :byte :length 9))
    :primary-skills? codec/byte->bool
    :primary-skills #(when (:primary-skills? %1) (b/repeated :byte :length 4))
-   :unknown (b/repeated :byte :length 16)
-   :logger #(do
-              (pp/pprint "post arts")
-              (pp/pprint %1)
-              nil)))
+   :unknown (b/repeated :byte :length 16)))
 
 
 ;; TODO save random-monster level
 (def object-monster
   (codec/cond-codec
-   :unknown :int-le
+   :id :int-le
    :count :short-le
    :character :byte
    :msg? codec/byte->bool
@@ -262,13 +252,11 @@
            (b/ordered-map
             :text codec/int-sized-string
             :resources resources
-            :unknown :short-le))
+            :art-id :short-le))
    :never-flees codec/byte->bool
    :never-grow codec/byte->bool
-   :unknown :short-le
-   :logger #(do
-              (pp/pprint %1)
-              nil)))
+   :unknown-1 :byte
+   :unknown-2 :byte))
 
 
 (def object-message
