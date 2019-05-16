@@ -30,21 +30,19 @@
    :human-can-play? codec/byte->bool
    :pc-can-play? codec/byte->bool
    :skiped? #(when (unused-player? %1) (b/repeated :byte :length 13))
-  ;  :behavior #(when (not (unused-player? %1)) :byte)
    :town #(when (not (unused-player? %1))
             (codec/cond-codec
-             :behavior :byte
+             :ai-behavior :byte
              :town-set-allowed? codec/byte->bool
-             :town-bits (b/bits [:castle :rampart :tower :inferno :necropolis :dungeon :stronghold :fortress :conflux])
+             :town (b/bits [:castle :rampart :tower :inferno :necropolis :dungeon :stronghold :fortress :conflux])
              :random? codec/byte->bool
              :has-main-town? codec/byte->bool
              :main-town (fn [town] (when (:has-main-town? town) main-town))))
    :hero #(when (not (unused-player? %1))
             (codec/cond-codec
              :random-hero? codec/byte->bool
-             :hero-id :byte ; ubyte???
-             ; TOOD
-            ;  :main (fn [h] (when (not= 255 (:hero-id h))) hero)
+             :hero-id :ubyte
+             :main (fn [parsed-hero] (when (not= 255 (:hero-id parsed-hero))) hero)
              :unknown-byte :byte
              :heroes (b/repeated hero :prefix :int-le)))))
 
@@ -404,8 +402,8 @@
   (codec/cond-codec
    :unknown :int-le
    :castle-index :int-le
-   :allowed-town #(when (= 1 (:castle-index %1)) :short-le) ; TODO bits
-   ))
+   :allowed-town #(when (= 1 (:castle-index %1)) :short-le))) ; TODO bits
+
 
 
 (def object-random-dwelling-faction
