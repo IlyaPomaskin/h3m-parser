@@ -27,8 +27,8 @@
                      (b/read-data big-in little-in)
                      (as-> v (assoc decoded-map param-key v)))
              (catch java.io.EOFException e
-               (println "param-key" param-key)
-               (println "decoded-map" decoded-map)
+               (pp/pprint ["param-key" param-key])
+               (pp/pprint ["decoded-map" decoded-map])
                (throw e)))
            decoded-map))
        {}
@@ -48,8 +48,10 @@
 
 
 (defn logger
-  [prefix]
-  (fn [data]
-    (pp/pprint prefix)
-    (pp/pprint data)
-    nil))
+  ([prefix]
+   (logger prefix identity))
+  ([prefix getter]
+   (fn [data]
+     (pp/pprint prefix)
+     (pp/pprint (getter data))
+     nil)))

@@ -15,7 +15,7 @@
 
 (def hero
   (codec/cond-codec
-   :portrait-id :byte
+   :portrait-id :ubyte
    :name codec/int-sized-string))
 
 
@@ -41,38 +41,43 @@
    :hero #(when (not (unused-player? %1))
             (codec/cond-codec
              :random-hero? codec/byte->bool
-             :hero-id :ubyte
-             :main (fn [parsed-hero] (when (not= 255 (:hero-id parsed-hero))) hero)
+             :main-hero-id :ubyte
+             :main (fn [parsed-hero] (when (not= 255 (:main-hero-id parsed-hero))) hero)
              :unknown-byte :byte
-             :heroes (b/repeated hero :prefix :int-le)))))
-
+             :heroes-count :ubyte
+             :skip [:ubyte :ubyte :ubyte]
+             :heroes (fn [parsed-hero] (b/repeated hero :length (:heroes-count parsed-hero)))))))
 
 (def victory-loss-conditions
   (codec/cond-codec
-   :victory :ubyte
-   :ai-can-kill-all? #(when (not= 255 (:victory %1)) :short-le)
-   :win-condition #(case (:victory %1)
-                     0 [:byte :byte]
-                     1 [:byte :byte :int-le]
-                     2 [:byte :int-le]
-                     3 [:byte :byte :byte
-                        :byte
-                        :byte]
-                     4 [:byte :byte :byte]
-                     5 [:byte :byte :byte]
-                     6 [:byte :byte :byte]
-                     7 [:byte :byte :byte]
-                     8 nil
-                     9 nil
-                     10 [:byte
-                         :byte :byte :byte]
-                     nil)
-   :loss :ubyte
-   :loss-condition #(case (:loss %1)
-                      1 [:byte :byte :byte]
-                      2 [:byte :byte :byte]
-                      3 [:byte :byte]
-                      nil)))
+   :win-type :ubyte
+   :win #(when (not= 255 (:win-type %1))
+           (codec/cond-codec
+            :allow-normal? codec/byte->bool
+            :applies-to-ai? codec/byte->bool
+            :condition (case (:win-type %1)
+                         0 [:byte :byte] ; ARTIFACT
+                         1 [:byte :byte :int-le] ; GATHERTROOP
+                         2 [:byte :int-le] ; GATHERRESOURCE
+                         3 [:byte :byte :byte
+                            :byte
+                            :byte] ; BUILDCITY
+                         4 [:byte :byte :byte] ; BUILDGRAIL
+                         5 [:byte :byte :byte] ; BEATHERO
+                         6 [:byte :byte :byte] ; CAPTURECITY
+                         7 [:byte :byte :byte] ; BEATMONSTER
+                         8 nil ; TAKEDWELLINGS
+                         9 nil ; TAKEMINES
+                         10 [:byte
+                             :byte :byte :byte] ; TRANSPORTITEM
+                         nil)))
+   :loss-type :ubyte
+   :loss #(when (not= 255 (:loss-type %1))
+            (case (:loss-type %1)
+              0 [:byte :byte :byte] ; LOSSCASTLE
+              1 [:byte :byte :byte] ; LOSSHERO
+              2 [:short-le] ; TIMEEXPIRES
+              nil))))
 
 
 (def disposed-hero
@@ -528,8 +533,9 @@
    :level-limit :byte
    :players (b/repeated player :length 8)
    :victory-loss-conditions victory-loss-conditions
-   :teams-count :byte
-   :teams (b/repeated :byte :length 8)
+   :teams-count :ubyte
+   :teams #(when (not= 0 (:teams-count %1))
+             (b/repeated :byte :length 8))
    :placeholder-1 (b/repeated :ubyte :length 20)
    :placeholder-2 (b/repeated :byte :prefix :int-le)
    :heroes (b/repeated disposed-hero :prefix :ubyte)
