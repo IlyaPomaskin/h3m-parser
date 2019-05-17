@@ -27,8 +27,8 @@
                      (b/read-data big-in little-in)
                      (as-> v (assoc decoded-map param-key v)))
              (catch java.io.EOFException e
-               (pp/pprint ["param-key" param-key])
-               (pp/pprint ["decoded-map" decoded-map])
+               (println ["param-key" param-key])
+               (println ["decoded-map" decoded-map])
                (throw e)))
            decoded-map))
        {}

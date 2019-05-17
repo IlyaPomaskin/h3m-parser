@@ -390,7 +390,7 @@
    :abillities (b/repeated :short-le :prefix :byte)
    :arts (b/repeated :short-le :prefix :byte)
    :spells (b/repeated :byte :prefix :byte)
-   :creatures (b/repeated :byte :prefix :byte)
+   :creatures (b/repeated creature :prefix :byte)
    :unknown (b/repeated :byte :length 8)))
 
 
@@ -546,8 +546,6 @@
    :rumors (b/repeated rumor :prefix :int-le)
    :predefined-heroes (b/repeated (b/repeated defined-hero :prefix :ubyte) :length 156)
    :terrain #(b/repeated terrain-tile :length (* (* (:size %1) (:size %1))
-                                                 (if (:has-underground? %1)
-                                                   2
-                                                   1)))
+                                                 (if (:has-underground? %1) 2 1)))
    :defs (b/repeated def-info :prefix :int-le)
    :objects #(b/repeated (get-object-codec (:defs %1)) :prefix :int-le)))
