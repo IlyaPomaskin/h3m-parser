@@ -42,7 +42,7 @@
             (codec/cond-codec
              :random-hero? codec/byte->bool
              :main-hero-id :ubyte
-             :main (fn [parsed-hero] (when (not= 255 (:main-hero-id parsed-hero))) hero)
+             :main (fn [parsed-hero] (when (not= 255 (:main-hero-id parsed-hero)) hero))
              :unknown-byte :byte
              :heroes-count :ubyte
              :skip [:ubyte :ubyte :ubyte]
