@@ -244,7 +244,6 @@
    :unknown (b/repeated :byte :length 16)))
 
 
-;; TODO save random-monster level
 (def object-monster
   (codec/cond-codec
    :id :int-le
@@ -396,24 +395,26 @@
 
 (def object-random-dwelling
   (codec/cond-codec
-   :unknown :int-le
+   :owner :int-le
    :castle-index :int-le
-   :allowed-town #(when (= 1 (:castle-index %1)) :short-le) ; TODO bits
+   :allowed-town #(when (= 1 (:castle-index %1))
+                    (b/bits [:castle :rampart :tower :inferno :necropolis :dungeon :stronghold :fortress :conflux]))
    :min :byte
    :max :byte))
 
 
 (def object-random-dwelling-lvl
   (codec/cond-codec
-   :unknown :int-le
+   :owner :int-le
    :castle-index :int-le
-   :allowed-town #(when (= 1 (:castle-index %1)) :short-le))) ; TODO bits
+   :allowed-town #(when (= 1 (:castle-index %1))
+                    (b/bits [:castle :rampart :tower :inferno :necropolis :dungeon :stronghold :fortress :conflux]))))
 
 
 
 (def object-random-dwelling-faction
   (b/ordered-map
-   :unknown :int-le
+   :owner :int-le
    :min :byte
    :max :byte))
 
