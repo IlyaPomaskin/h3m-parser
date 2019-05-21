@@ -7,6 +7,6 @@
                  [smee/binary "0.5.4"]
                  [gloss "0.2.6"]
                  [cheshire "5.8.1"]]
-  :main ^:skip-aot h3m-parser.core
+  :main ^:skip-aot h3m-parser.main
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})
