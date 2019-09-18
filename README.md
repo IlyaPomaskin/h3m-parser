@@ -7,15 +7,24 @@ Reference: https://github.com/vcmi/vcmi/blob/develop/lib/mapping/MapFormatH3M.cp
 
 ## Usage
 
-$ lein run ./resources/invasion.h3m
+```
+(ns h3m-lwp-clj.core
+  (:require [clojure.java.io :as io]
+            [h3m-parser.main :as h3m]))
+
+(def file-path "./resources/invasion.h3m")
+
+(if (not (.exists (io/file file-path)))
+    (throw (Exception. (str "File " file-path " doesn't exists")))
+    (println (h3m/parse-file file-path)))
+```
 
 ```
-{:description
- "This map is taken from the catalogue www.heroesportal.net\n",
+{:description "This map is taken from the catalogue www.heroesportal.net\n",
  :teams-count 2,
  :heroes [],
  :difficulty 3,
  :map-version 28,
  :has-players? true,
  ... }
-```
+ ```
