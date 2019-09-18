@@ -1,8 +1,6 @@
 (ns h3m-parser.main
-  (:require [clojure.spec.alpha :as s]
-            [clojure.java.io :as io]
+  (:require [clojure.java.io :as io]
             [org.clojars.smee.binary.core :as binary]
-            [h3m-parser.objects :as h3m-objects]
             [h3m-parser.h3m :as h3m]))
 
 
