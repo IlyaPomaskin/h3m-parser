@@ -1,6 +1,5 @@
 (ns h3m-parser.h3m
   (:require [org.clojars.smee.binary.core :as b]
-            [clojure.pprint :as pp]
             [h3m-parser.codec :as codec]))
 
 
