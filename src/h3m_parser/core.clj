@@ -31,9 +31,9 @@
 (defn parse-def-frame [^String file-path group-index file-index]
   (let [def-info (parse-def file-path)
         name (get-in def-info [:groups group-index :names file-index])
-        offset (get-in def-info [:groups group-index :offsets file-index])
-        ; TODO legacy detection
-        legacy-def? false
-        raf (new RandomAccessFile file-path "r")]
+        offsets (get-in def-info [:groups group-index :offsets])
+        offset (get offsets file-index)
+        raf (new RandomAccessFile file-path "r")
+        legacy-def? (def/legacy? raf offsets)]
     (when (and (some? name) (some? offset))
       (frame/parse raf offset legacy-def?))))
