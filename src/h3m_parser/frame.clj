@@ -34,6 +34,36 @@
       (Integer/reverseBytes (.readInt raf))))))
 
 
+(defn frame-compression-2 [^RandomAccessFile raf start-offset width height]
+  (let [offsets (doall
+                 (for [_ (range 0 height)]
+                   (bit-and 16rFFFF (Short/reverseBytes (.readShort raf)))))]
+    (.skipBytes raf 2)
+    (map
+     (fn [offset]
+       (.seek raf (+ start-offset offset))
+       (loop [left width
+              result []]
+         (let [control-byte (.readUnsignedByte raf)
+               code (bit-shift-right control-byte 5)
+               length (+ (bit-and control-byte 0x1f) 1)
+               data (if (= 0x7 code)
+                      (doall
+                       (for [_ (range 0 length)]
+                         (.readUnsignedByte raf)))
+                      (repeat length code))
+               segment {:byte control-byte
+                        :code code
+                        :length length
+                        :data data}
+               next-left (- left length)
+               next-result (conj result segment)]
+           (if (pos? next-left)
+             (recur next-left next-result)
+             next-result))))
+     offsets)))
+
+
 (defn frame-compression-3 [^RandomAccessFile raf start-offset width height]
   (map
     (fn [offset]
@@ -76,7 +106,7 @@
         data (case compression
                0 (frame-compression-0 raf size)
                1 (frame-compression-1 raf data-offset width height)
-               2 (throw (new Exception "type 2"))
+               2 (frame-compression-2 raf data-offset width height)
                3 (frame-compression-3 raf data-offset width height)
                [])]
     (hash-map
