@@ -1,5 +1,4 @@
-(ns h3m-parser.frame
-  (:import java.io.RandomAccessFile))
+(ns h3m-parser.frame)
 
 
 (defn frame-compression-0 [raf size]
@@ -62,9 +61,8 @@
        (bit-and 16rFFFF (Short/reverseBytes (.readShort raf)))))))
 
 
-(defn parse [file-path offset legacy?]
-  (let [raf (new RandomAccessFile file-path "r")
-        _ (.seek raf offset)
+(defn parse [raf offset legacy?]
+  (let [_ (.seek raf offset)
         size (Integer/reverseBytes (.readInt raf))
         compression (Integer/reverseBytes (.readInt raf))
         full-width (Integer/reverseBytes (.readInt raf))
