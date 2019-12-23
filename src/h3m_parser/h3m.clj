@@ -54,7 +54,7 @@
            (codec/cond-codec
             :allow-normal? codec/byte->bool
             :applies-to-ai? codec/byte->bool
-            :condition (case (:win-type %1)
+            :condition (case (int (:win-type %1))
                          0 [:byte :byte] ; ARTIFACT
                          1 [:byte :byte :int-le] ; GATHERTROOP
                          2 [:byte :int-le] ; GATHERRESOURCE
@@ -72,7 +72,7 @@
                          nil)))
    :loss-type :ubyte
    :loss #(when (not= 255 (:loss-type %1))
-            (case (:loss-type %1)
+            (case (int (:loss-type %1))
               0 [:byte :byte :byte] ; LOSSCASTLE
               1 [:byte :byte :byte] ; LOSSHERO
               2 [:short-le] ; TIMEEXPIRES
@@ -177,7 +177,7 @@
    :mission-type :byte
    :quest #(when (:mission-type %1)
              (b/ordered-map
-              :mission-data (case (:mission-type %1)
+              :mission-data (case (int (:mission-type %1))
                               1 :int-le
                               2 :int-le
                               3 :int-le
@@ -269,7 +269,7 @@
 (def reward
   (codec/cond-codec
    :type :byte
-   :reward #(case (:type %1)
+   :reward #(case (int (:type %1))
              ; 0 NOTHING
               1 :int-le ; EXPERIENCE
               2 :int-le ; MANA_POINTS

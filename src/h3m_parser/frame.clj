@@ -1,13 +1,14 @@
-(ns h3m-parser.frame)
+(ns h3m-parser.frame
+  (:import java.io.RandomAccessFile))
 
 
-(defn frame-compression-0 [raf size]
+(defn frame-compression-0 [^RandomAccessFile raf size]
   (let [buffer (byte-array size)]
     (.read raf buffer)
     buffer))
 
 
-(defn frame-compression-1 [raf start-offset width height]
+(defn frame-compression-1 [^RandomAccessFile raf start-offset width height]
   (map
    (fn [offset]
      (.seek raf (+ start-offset offset))
@@ -33,7 +34,7 @@
       (Integer/reverseBytes (.readInt raf))))))
 
 
-(defn frame-compression-3 [raf start-offset width height]
+(defn frame-compression-3 [^RandomAccessFile raf start-offset width height]
   (map
     (fn [offset]
       (.seek raf (+ start-offset offset))
@@ -61,7 +62,7 @@
        (bit-and 16rFFFF (Short/reverseBytes (.readShort raf)))))))
 
 
-(defn parse [raf offset legacy?]
+(defn parse [^RandomAccessFile raf offset legacy?]
   (let [_ (.seek raf offset)
         size (Integer/reverseBytes (.readInt raf))
         compression (Integer/reverseBytes (.readInt raf))

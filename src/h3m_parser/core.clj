@@ -28,7 +28,7 @@
           (as-> stream (binary/decode def/root stream))))
 
 
-(defn parse-def-frame [file-path group-index file-index]
+(defn parse-def-frame [^String file-path group-index file-index]
   (let [def-info (parse-def file-path)
         name (get-in def-info [:groups group-index :names file-index])
         offset (get-in def-info [:groups group-index :offsets file-index])
