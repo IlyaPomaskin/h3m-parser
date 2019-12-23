@@ -33,7 +33,7 @@
             next-result))))
     (doall
      (for [_ (range 0 (/ (* height width) 32))]
-       (Short/reverseBytes (.readShort raf))))))
+       (bit-and 16rFFFF (Short/reverseBytes (.readShort raf)))))))
 
 
 (defn parse [file-path offset legacy?]
