@@ -55,3 +55,11 @@
      (pp/pprint prefix)
      (pp/pprint (getter data))
      nil)))
+
+
+(def reader-position
+  (reify BinaryIO
+    (read-data [codec big-in little-in]
+      (.size little-in))
+    (write-data [codec big-out little-out value]
+      big-out)))
