@@ -8,7 +8,7 @@
    :name (b/padding (b/c-string "ISO-8859-1") :length 16)
    :offset :int-le
    :size :int-le
-   :unknown-type :int-le
+   :type :int-le
    :compressed-size :int-le))
 
 
