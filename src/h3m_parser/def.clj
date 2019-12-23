@@ -30,9 +30,10 @@
 
 
 (defn legacy? [^RandomAccessFile raf offsets]
-  (some
-   (fn [offset]
-     (let [_ (.seek raf offset)
-           size (+ (.readInt raf) 32)]
-       (> (+ size offset) (.length raf))))
-   offsets))
+  (boolean
+   (some
+    (fn [offset]
+      (let [_ (.seek raf offset)
+            size (+ (Integer/reverseBytes (.readInt raf)) 32)]
+        (> (+ size offset) (.length raf))))
+    offsets)))
