@@ -28,12 +28,14 @@
           (as-> stream (binary/decode def/root stream))))
 
 
-(defn parse-def-frame [^String file-path group-index file-index]
-  (let [def-info (parse-def file-path)
-        name (get-in def-info [:groups group-index :names file-index])
-        offsets (get-in def-info [:groups group-index :offsets])
-        offset (get offsets file-index)
-        raf (new RandomAccessFile file-path "r")
-        legacy-def? (def/legacy? raf offsets)]
-    (when (and (some? name) (some? offset))
-      (frame/parse raf offset legacy-def?))))
+(defn parse-def-frame
+  ([^String file-path group-index file-index]
+   (parse-def-frame file-path (parse-def file-path) group-index file-index))
+  ([^String file-path def-info group-index file-index]
+   (let [name (get-in def-info [:groups group-index :names file-index])
+         offsets (get-in def-info [:groups group-index :offsets])
+         offset (get offsets file-index)
+         raf (new RandomAccessFile file-path "r")
+         legacy-def? (def/legacy? raf offsets)]
+     (when (and (some? name) (some? offset))
+       (frame/parse raf offset legacy-def?)))))
