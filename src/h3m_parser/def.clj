@@ -29,6 +29,7 @@
    :end codec/reader-position))
 
 
+; legacy def files have less fields in frame header
 (defn legacy? [^RandomAccessFile raf offsets]
   (boolean
    (some
