@@ -103,7 +103,7 @@
         x (if legacy? 0 (Integer/reverseBytes (.readInt raf)))
         y (if legacy? 0 (Integer/reverseBytes (.readInt raf)))
         data-offset (.getFilePointer raf)
-        data (case compression
+        segments (case compression
                0 (frame-compression-0 raf size)
                1 (frame-compression-1 raf data-offset width height)
                2 (frame-compression-2 raf data-offset width height)
@@ -118,4 +118,4 @@
      :height height
      :x x
      :y y
-     :data (vec data))))
+     :segments (vec segments))))
