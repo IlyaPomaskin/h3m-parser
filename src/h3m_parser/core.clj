@@ -39,3 +39,96 @@
          legacy-def? (def/legacy? raf offsets)]
      (when (and (some? name) (some? offset))
        (frame/parse raf offset legacy-def?)))))
+
+
+(defn read-frames [lod-in ^RandomAccessFile lod-raf def-name]
+  (let [lod-info (binary/decode lod/root lod-in)
+        lod-def-info (->> lod-info
+                          :files
+                          (filter #(= (:name %) def-name))
+                          (first))
+        _ (println lod-def-info)
+        def-memory (byte-array (:compressed-size lod-def-info))
+        _ (doto lod-raf
+            (.seek (:offset lod-def-info))
+            (.read def-memory))
+        inflater-in (new
+                     java.util.zip.InflaterInputStream
+                     (io/input-stream def-memory))
+        def-info (binary/decode def/root inflater-in)
+        offsets (get-in def-info [:groups 0 :offsets])
+        def-legacy? false ; (def/legacy? lod-raf offsets)
+        ]
+    def-info
+    ; (reduce
+    ;  (fn [acc offset]
+    ;    (conj
+    ;     acc
+    ;     [offset (frame/parse lod-raf offset def-legacy?)]))
+    ;  {}
+    ;  offsets)
+  ;
+    ))
+
+
+(clojure.pprint/pprint
+ (let [data (read-frames
+             (new
+              java.io.FileInputStream
+              "./resources/H3sprite.lod")
+             (new RandomAccessFile "./resources/H3sprite.lod" "r")
+             "AvWAngl.def")]
+   (dissoc data :palette :groups)
+   data)
+ (clojure.java.io/writer "AvWAngl.edn"))
+
+
+(let [lod-file (io/input-stream "./resources/H3sprite.lod")
+      ; lod-file (new java.io.FileInputStream "./resources/H3sprite.lod")
+      _ (.mark lod-file (.available lod-file))
+      raf (new RandomAccessFile "./resources/H3sprite.lod" "r")
+      lod-info (binary/decode lod/root lod-file)
+      lod-def-info (doall
+                    (->> lod-info
+                         :files
+                         (filter #(= (:name %) "AvWAngl.def"))
+                         (first)))
+      _ (println lod-def-info)
+      def-memory (byte-array (:compressed-size lod-def-info))
+      def-unpacked (byte-array (:size lod-def-info))
+      ; _ (doto lod-file
+      ;     (.reset)
+      ;     (.skip (:offset lod-def-info))
+      ;     (.read def-memory))
+      ; _ (println (.ready lod-file))
+      ; _ (clojure.pprint/pprint
+      ;    (clojure.reflect/reflect
+      ;     raf))
+      _ (.read
+         raf
+         def-memory
+         (:offset lod-def-info)
+         (:compressed-size lod-def-info))
+      infl-in (new
+               java.util.zip.InflaterInputStream
+               (io/input-stream def-memory)
+              ; (new java.util.zip.Inflater true)
+               )
+      ; _ (.skip in-inf (:offset lod-def-info))
+      ; _ (println "MEMORY" (String. def-memory))
+      ; _ (doto (new java.util.zip.Inflater)
+      ;     (.setInput def-memory)
+      ;     (.inflate def-unpacked)
+      ;     (.end))
+      ; _ (doto (new
+      ;          java.util.zip.InflaterInputStream
+      ;          (io/input-stream def-unpacked))
+      ;     (.read def-unpacked))
+      def-input (io/input-stream def-unpacked)
+      def-info (binary/decode def/root infl-in)]
+  (println def-info))
+
+
+(clojure.pprint/pprint
+ (clojure.reflect/reflect
+  (io/input-stream "./resources/H3sprite.lod")))
