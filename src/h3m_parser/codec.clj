@@ -63,3 +63,11 @@
       (.size little-in))
     (write-data [codec big-out little-out value]
       big-out)))
+
+      
+(defn constant [value]
+  (reify BinaryIO
+    (read-data [codec big-in little-in]
+      value)
+    (write-data [codec big-out little-out value]
+      big-out)))
