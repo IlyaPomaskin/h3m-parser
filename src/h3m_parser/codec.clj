@@ -71,3 +71,33 @@
       value)
     (write-data [codec big-out little-out value]
       big-out)))
+
+
+(defn offset-assert [expected-offset]
+  (reify BinaryIO
+    (read-data [codec big-in little-in]
+      (let [current-position (b/read-data reader-position big-in little-in)]
+        (when (not (= current-position expected-offset))
+          (throw
+           (new
+            AssertionError
+            (format
+             "Wrong offset. Expected: %d, current %d"
+             expected-offset
+             current-position))))))
+    (write-data [codec big-out little-out value]
+      big-out)))
+
+    
+(defn move-cursor-forward [offset]
+(reify BinaryIO
+    (read-data [codec big-in little-in]
+      (let [current-position (b/read-data reader-position big-in little-in)
+            skip-length (- offset current-position)]
+        (when (pos? skip-length)
+          (println "Need to move cursor. pos:" current-position "should be:" offset)
+          ; TODO type hinting
+          (.skipBytes little-in skip-length))))
+    (write-data [codec big-out little-out value]
+      big-out))
+)
