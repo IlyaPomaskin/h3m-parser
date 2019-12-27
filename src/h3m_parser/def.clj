@@ -5,43 +5,9 @@
            org.clojars.smee.binary.core.BinaryIO))
 
 
-(defn frame-compression-3 [^RandomAccessFile raf start-offset width height]
-  (map
-    (fn [offset]
-      (.seek raf (+ start-offset offset))
-      (loop [left 32
-             result []]
-        (let [control-byte (.readUnsignedByte raf)
-              code (bit-shift-right control-byte 5)
-              length (+ (bit-and control-byte 0x1f) 1)
-              data (if (= 0x7 code)
-                     (doall
-                      (for [_ (range 0 length)]
-                        (.readUnsignedByte raf)))
-                     (repeat length code))
-              segment {:byte control-byte
-                       :code code
-                       :length length
-                       :data data}
-              next-left (- left length)
-              next-result (conj result segment)]
-          (if (pos? next-left)
-            (recur next-left next-result)
-            next-result))))
-    (doall
-     (for [_ (range 0 (/ (* height width) 32))]
-       (bit-and 16rFFFF (Short/reverseBytes (.readShort raf)))))))
-
-
-(defn read-while [codec initial-value offset]
+(defn read-while [codec initial-value]
   (reify BinaryIO
     (read-data [_ big-in little-in]
-      (let [current-position (b/read-data codec/reader-position big-in little-in)
-            skip-length (- offset current-position)]
-        (println "cur-pos" current-position "offset" offset "skip" skip-length)
-        (when (pos? skip-length)
-          (println "need to skip cur-pos:" current-position "should be:" offset)
-          (.skipBytes little-in)))
       (loop [value initial-value
              result []]
         (let [data (b/read-data codec big-in little-in)
@@ -54,10 +20,10 @@
       nil)))
 
 
-(def frame-c-3-line
+(defn frame-c-3-line [offset]
   (codec/cond-codec
-   :line-start codec/reader-position
-  ;  :logger (codec/logger "line-start" #(:line-start %))
+  ; TODO check offsets
+  ;  :assert (codec/offset-assert offset)
    :byte :ubyte
    :code #(codec/constant (bit-shift-right (:byte %) 5))
    :length #(codec/constant (+ (bit-and (:byte %) 0x1f) 1))
@@ -65,41 +31,30 @@
            (if (= 0x7 (:code %))
              :ubyte
              (codec/constant (:code %)))
-           :length (:length %))
-   :line-end codec/reader-position
-  ;  :logger (codec/logger "line-end" #(:line-end %))
-  ;  :logger (codec/logger "line")
-   ))
+           :length (:length %))))
 
 
 (defn frame-c-3 [height width]
   (codec/cond-codec
    :frame-content-start codec/reader-position
-  ;  :logger (codec/logger "frame-content-start" #(:frame-content-start %))
    :offsets (b/repeated :short-le :length (/ (* height width) 32))
-   :logger (codec/logger "frame lines offsets" #(:offsets %))
-   :lines #(->> (:offsets %)
-                (sort)
-                (mapv
-                 (fn [offset]
-                   (read-while
-                    frame-c-3-line
-                    32
-                    (+ offset (:frame-content-start %))))))
-   :pos codec/reader-position))
+   :lines (fn [ctx]
+            (apply
+             codec/cond-codec
+             (->> (:offsets ctx)
+                  (distinct)
+                  (sort)
+                  (mapcat
+                   #(vector
+                     %
+                     (read-while
+                      (frame-c-3-line (+ % (:frame-content-start ctx)))
+                      32))))))))
 
 
-(def frame
+(defn frame [offset]
   (codec/cond-codec
-   :frame-start codec/reader-position
-   :logger (codec/logger "frame start" #(:frame-start %))
-   :logger (codec/logger "frame start" #(:frame-start %))
-   :logger (codec/logger "frame start" #(:frame-start %))
-   :logger (codec/logger "frame start" #(:frame-start %))
-   :logger (codec/logger "frame start" #(:frame-start %))
-   :logger (codec/logger "frame start" #(:frame-start %))
-   :logger (codec/logger "frame start" #(:frame-start %))
-   :logger (codec/logger "frame start" #(:frame-start %))
+   :assert (codec/offset-assert offset)
    :size :int-le
    :compression :int-le
    :full-width :int-le
@@ -124,14 +79,13 @@
               :int-le
               :length (:frame-count %))
    :frame-start codec/reader-position
-   :logger (codec/logger
-            "frames start"
-            #(vector (:frame-start %) (:offsets %)))
-   :frames #(apply
-             codec/cond-codec
-             (interleave
-              (sort (:offsets %))
-              (repeat frame)))))
+   :frames (fn [ctx]
+             (apply
+              codec/cond-codec
+              (->> (:offsets ctx)
+                   (distinct)
+                   (sort)
+                   (mapcat #(vector % (frame %))))))))
 
 
 (def root
