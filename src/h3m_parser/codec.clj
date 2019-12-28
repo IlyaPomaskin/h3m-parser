@@ -2,7 +2,9 @@
   (:require [org.clojars.smee.binary.core :as b]
             [clojure.pprint :as pp]
             [h3m-parser.objects :as h3m-objects])
-  (:import org.clojars.smee.binary.core.BinaryIO))
+  (:import org.clojars.smee.binary.core.BinaryIO
+           ; import from smee/binary/java-src/impl
+           impl.LittleEndianDataInputStream))
 
 
 (defn reduce-kvs
@@ -38,7 +40,7 @@
       big-out)))
 
 
-(def int-sized-string (b/compile-codec (b/string "ISO-8859-1" :prefix :int-le)))
+(def int-sized-string (b/string "ISO-8859-1" :prefix :int-le))
 
 
 (def byte->bool (b/compile-codec :byte #(if (true? %1) 1 0) pos?))
@@ -60,7 +62,7 @@
 (def reader-position
   (reify BinaryIO
     (read-data [codec big-in little-in]
-      (.size little-in))
+      (.size ^LittleEndianDataInputStream little-in))
     (write-data [codec big-out little-out value]
       big-out)))
 
@@ -90,14 +92,12 @@
 
     
 (defn move-cursor-forward [offset]
-(reify BinaryIO
+  (reify BinaryIO
     (read-data [codec big-in little-in]
       (let [current-position (b/read-data reader-position big-in little-in)
             skip-length (- offset current-position)]
         (when (pos? skip-length)
           (println "Need to move cursor. pos:" current-position "should be:" offset)
-          ; TODO type hinting
-          (.skipBytes little-in skip-length))))
+          (.skipBytes ^LittleEndianDataInputStream little-in skip-length))))
     (write-data [codec big-out little-out value]
-      big-out))
-)
+      big-out)))
