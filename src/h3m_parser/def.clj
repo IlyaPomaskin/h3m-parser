@@ -56,7 +56,7 @@
 ; TODO legacy detection
 (defn frame [offset]
   (codec/cond-codec
-   :assert (codec/offset-assert offset)
+   :assert (codec/offset-assert offset "frame")
    :size :int-le
    :compression :int-le
    :full-width :int-le

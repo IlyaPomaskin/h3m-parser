@@ -75,7 +75,7 @@
       big-out)))
 
 
-(defn offset-assert [expected-offset]
+(defn offset-assert [expected-offset entity-name]
   (reify BinaryIO
     (read-data [codec big-in little-in]
       (let [current-position (b/read-data reader-position big-in little-in)]
@@ -84,7 +84,8 @@
            (new
             AssertionError
             (format
-             "Wrong offset. Expected: %d, current %d"
+             "Wrong offset while parsing %s. Expected: %d, current %d"
+             entity-name
              expected-offset
              current-position))))))
     (write-data [codec big-out little-out value]
