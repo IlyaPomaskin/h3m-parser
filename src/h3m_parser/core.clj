@@ -42,36 +42,29 @@
 
 (defn read-lod-def
   [lod-def-info in]
-  (let [def-buffer (def->stream lod-def-info in)
-        def-info (binary/decode def/root def-buffer)
-        first-offset (get-in def-info [:groups 0 :offsets 0])]
-    {:type (:type def-info)
-     :group-count (:group-count def-info)
-     :compression (get-in def-info [:groups 0 :frames first-offset :compression])
-     :frames-count (get-in def-info [:groups 0 :frame-count])}
-    def-info))
+  (let [def-stream (def->stream lod-def-info in)
+        def-info (binary/decode def/root def-stream)
+        uncompressed-size (:size lod-def-info)]
+    (-> def-info
+        (assoc
+         :name (:name lod-def-info)
+         :legacy? (def/legacy? def-info def-stream uncompressed-size)
+         :frames-count (get-in def-info [:groups 0 :frame-count]))
+        (dissoc :frames :palette))))
 
 
-(defn read-frames [lod-in]
-  (->> (binary/decode lod/root lod-in)
+(defn read-frames [in]
+  (->> (binary/decode lod/root in)
        :files
        (filter #(not= (:type %) 67))
-       (filter #(= (:name %) "AB01_.def"))
-      ;  (filter #(= (:name %) "AVA0001.def"))
-      ;  (take 10)
-       (map #(do
-               (println (:name %))
-               (assoc
-                (read-lod-def % lod-in)
-                :name (:name %))))
-      ;  (filter #(not= (:compression %) 3))
-       ))
+       (filter #(clojure.string/ends-with? (:name %) ".def"))
+       (map #(read-lod-def % in))
+       (take 1)))
 
 
 (clojure.pprint/pprint
  (read-frames
-  (new FileInputStream "./resources/H3sprite.lod"))
- (clojure.java.io/writer "AB01_.def.edn"))
+  (new FileInputStream "./resources/H3sprite.lod")))
 
 
 (defn test-reading-def []
