@@ -101,3 +101,18 @@
           (.skipBytes ^LittleEndianDataInputStream little-in skip-length))))
     (write-data [codec big-out little-out value]
       big-out)))
+
+
+(defn read-lines [codec length-key initial-length]
+  (reify BinaryIO
+    (read-data [_ big-in little-in]
+      (loop [length initial-length
+             result []]
+        (let [data (b/read-data codec big-in little-in)
+              next-length (- length (get data length-key))
+              next-result (conj result data)]
+          (if (pos? next-length)
+            (recur next-length next-result)
+            next-result))))
+    (write-data [_ big-out little-out length]
+      nil)))
