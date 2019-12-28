@@ -53,13 +53,23 @@
         (dissoc :frames :palette))))
 
 
+(def map-objects
+  #{(:sprite def/def-type)
+    (:terrain def/def-type)
+    (:map def/def-type)
+    (:map-hero def/def-type)})
+
+
 (defn read-frames [in]
   (->> (binary/decode lod/root in)
        :files
-       (filter #(not= (:type %) 67))
+       (filter #(map-objects (:type %)))
        (filter #(clojure.string/ends-with? (:name %) ".def"))
        (map #(read-lod-def % in))
-       (take 1)))
+       (map #(do
+               (println (:name %) (:type %))
+               nil))
+       (count)))
 
 
 (clojure.pprint/pprint
