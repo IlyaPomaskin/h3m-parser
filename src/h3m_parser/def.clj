@@ -4,6 +4,19 @@
    [h3m-parser.codec :as codec]))
 
 
+(def def-type
+  {:spell 0x40
+   :sprite 0x41
+   :creature 0x42
+   :map 0x43
+   :map-hero 0x44
+   :terrain 0x45
+   :cursor 0x46
+   :interface 0x47
+   :sprite-frame 0x48
+   :battle-hero 0x49})
+
+
 (defn frame-without-compression [size]
   (b/repeated :ubyte :length size))
 
@@ -53,7 +66,6 @@
                       [relative-offset (codec/read-lines codec :length line-length)])))))))
 
 
-; TODO legacy detection
 (defn frame [offset]
   (codec/cond-codec
    :assert (codec/offset-assert offset "frame")
