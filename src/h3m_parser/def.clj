@@ -1,7 +1,7 @@
 (ns h3m-parser.def
-  (:require [org.clojars.smee.binary.core :as b]
-            [h3m-parser.codec :as codec])
-  (:import java.io.RandomAccessFile))
+  (:require
+   [org.clojars.smee.binary.core :as b]
+   [h3m-parser.codec :as codec]))
 
 
 (defn frame-without-compression [size]
@@ -104,6 +104,7 @@
    :group-count :int-le
    :palette (b/repeated [:ubyte :ubyte :ubyte] :length 256)
    :groups #(b/repeated group :length (:group-count %))
+   :content-start codec/reader-position
    :frames (fn [ctx]
              (apply
               codec/cond-codec
@@ -114,11 +115,21 @@
                    (mapcat #(vector % (frame %))))))))
 
 
-(defn legacy? [^RandomAccessFile raf offsets]
-  (boolean
-   (some
-    (fn [offset]
-      (let [_ (.seek raf offset)
-            size (+ (Integer/reverseBytes (.readInt raf)) 32)]
-        (> (+ size offset) (.length raf))))
-    offsets)))
+(defn legacy? [def-info in file-size]
+  (let [stream (new java.io.BufferedInputStream in file-size)]
+    (.mark stream file-size)
+    (boolean
+     (->> def-info
+          :groups
+          (mapcat #(:offsets %))
+          (sort)
+          (reverse)
+          (some (fn [offset]
+                  (.reset stream)
+                  (.skip stream (long (- offset (:content-start def-info))))
+                  (>
+                   (+
+                    offset
+                    32 ; size of new fields
+                    (b/decode :int-le stream))
+                   file-size)))))))
