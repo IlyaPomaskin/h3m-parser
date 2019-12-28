@@ -1,7 +1,9 @@
 (ns h3m-parser.def
   (:require
    [org.clojars.smee.binary.core :as b]
-   [h3m-parser.codec :as codec]))
+   [h3m-parser.codec :as codec])
+  (:import
+   [java.io BufferedInputStream]))
 
 
 (def def-type
@@ -128,7 +130,7 @@
 
 
 (defn legacy? [def-info in file-size]
-  (let [stream (new java.io.BufferedInputStream in file-size)]
+  (let [stream (new BufferedInputStream in file-size)]
     (.mark stream file-size)
     (boolean
      (->> def-info
