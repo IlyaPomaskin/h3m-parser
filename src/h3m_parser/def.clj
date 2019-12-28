@@ -1,29 +1,31 @@
 (ns h3m-parser.def
   (:require [org.clojars.smee.binary.core :as b]
             [h3m-parser.codec :as codec])
-  (:import java.io.RandomAccessFile
-           org.clojars.smee.binary.core.BinaryIO))
+  (:import java.io.RandomAccessFile))
 
 
-(defn read-while [codec initial-value]
-  (reify BinaryIO
-    (read-data [_ big-in little-in]
-      (loop [value initial-value
-             result []]
-        (let [data (b/read-data codec big-in little-in)
-              next-value (- value (:length data))
-              next-result (conj result data)]
-          (if (pos? next-value)
-            (recur next-value next-result)
-            next-result))))
-    (write-data [_ big-out little-out value]
-      nil)))
+(defn frame-without-compression [size]
+  (b/repeated :ubyte :length size))
 
 
-(defn frame-c-3-line [offset]
+(defn frame-compressed-line-1 [offset]
+  (codec/cond-codec
+   ; TODO check offsets
+   ; :assert (codec/offset-assert offset)
+   :code :ubyte
+   :length-byte :ubyte
+   :length #(codec/constant (+ (:length-byte %) 1))
+   :data #(b/repeated
+           (if (= 0xFF (:code %))
+             :ubyte
+             (codec/constant (:code %)))
+           :length (:length %))))
+
+
+(defn frame-compressed-line-2-3 [offset]
   (codec/cond-codec
   ; TODO check offsets
-  ;  :assert (codec/offset-assert offset)
+  ; :assert (codec/offset-assert offset)
    :byte :ubyte
    :code #(codec/constant (bit-shift-right (:byte %) 5))
    :length #(codec/constant (+ (bit-and (:byte %) 0x1f) 1))
@@ -34,10 +36,10 @@
            :length (:length %))))
 
 
-(defn frame-c-3 [height width]
+(defn frame-compressed [line-codec-fn offsets-length line-length]
   (codec/cond-codec
    :frame-content-start codec/reader-position
-   :offsets (b/repeated :short-le :length (/ (* height width) 32))
+   :offsets (b/repeated :short-le :length offsets-length)
    :lines (fn [ctx]
             (apply
              codec/cond-codec
@@ -45,13 +47,13 @@
                   (distinct)
                   (sort)
                   (mapcat
-                   #(vector
-                     %
-                     (read-while
-                      (frame-c-3-line (+ % (:frame-content-start ctx)))
-                      32))))))))
+                   #(let [relative-offset %
+                          absolute-offset (+ relative-offset (:frame-content-start ctx))
+                          codec (line-codec-fn absolute-offset)]
+                      [relative-offset (codec/read-lines codec :length line-length)])))))))
 
 
+; TODO legacy detection
 (defn frame [offset]
   (codec/cond-codec
    :assert (codec/offset-assert offset)
@@ -63,7 +65,21 @@
    :height :int-le
    :x :int-le
    :y :int-le
-   :data #(frame-c-3 (:width %) (:height %))))
+   :data #(case (int (:compression %))
+            0 (frame-without-compression (:size %))
+            1 (frame-compressed
+               frame-compressed-line-1
+               (:height %)
+               (:width %))
+            2 (frame-compressed
+               frame-compressed-line-2-3
+               (:height %)
+               (:width %))
+            3 (frame-compressed
+               frame-compressed-line-2-3
+               (/ (* (:height %) (:width %)) 32)
+               32)
+            nil)))
 
 
 (def group
