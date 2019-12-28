@@ -48,25 +48,30 @@
     {:type (:type def-info)
      :group-count (:group-count def-info)
      :compression (get-in def-info [:groups 0 :frames first-offset :compression])
-     :frames-count (get-in def-info [:groups 0 :frame-count])}))
+     :frames-count (get-in def-info [:groups 0 :frame-count])}
+    def-info))
 
 
 (defn read-frames [lod-in]
   (->> (binary/decode lod/root lod-in)
        :files
-       (filter #(= (:type %) 67))
+       (filter #(not= (:type %) 67))
+       (filter #(= (:name %) "AB01_.def"))
       ;  (filter #(= (:name %) "AVA0001.def"))
-       (take 10)
-       (map #(assoc
-              (read-lod-def % lod-in)
-              :name (:name %)))
+      ;  (take 10)
+       (map #(do
+               (println (:name %))
+               (assoc
+                (read-lod-def % lod-in)
+                :name (:name %))))
       ;  (filter #(not= (:compression %) 3))
        ))
 
 
 (clojure.pprint/pprint
  (read-frames
-  (new FileInputStream "./resources/H3sprite.lod")))
+  (new FileInputStream "./resources/H3sprite.lod"))
+ (clojure.java.io/writer "AB01_.def.edn"))
 
 
 (defn test-reading-def []

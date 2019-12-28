@@ -93,15 +93,7 @@
             :length (:frame-count %))
    :offsets #(b/repeated
               :int-le
-              :length (:frame-count %))
-   :frame-start codec/reader-position
-   :frames (fn [ctx]
-             (apply
-              codec/cond-codec
-              (->> (:offsets ctx)
-                   (distinct)
-                   (sort)
-                   (mapcat #(vector % (frame %))))))))
+              :length (:frame-count %))))
 
 
 (def root
@@ -112,7 +104,14 @@
    :group-count :int-le
    :palette (b/repeated [:ubyte :ubyte :ubyte] :length 256)
    :groups #(b/repeated group :length (:group-count %))
-   :end codec/reader-position))
+   :frames (fn [ctx]
+             (apply
+              codec/cond-codec
+              (->> (:groups ctx)
+                   (mapcat #(:offsets %))
+                   (distinct)
+                   (sort)
+                   (mapcat #(vector % (frame %))))))))
 
 
 (defn legacy? [^RandomAccessFile raf offsets]
