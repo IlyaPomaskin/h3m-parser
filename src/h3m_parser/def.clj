@@ -72,6 +72,7 @@
 (defn frame [offset]
   (codec/cond-codec
    :assert (codec/offset-assert offset "frame")
+   :offset codec/reader-position
    :size :int-le
    :compression :int-le
    :full-width :int-le
@@ -121,13 +122,10 @@
    :groups #(b/repeated group :length (:group-count %))
    :content-start codec/reader-position
    :frames (fn [ctx]
-             (apply
-              codec/cond-codec
-              (->> (:groups ctx)
-                   (mapcat #(:offsets %))
-                   (distinct)
-                   (sort)
-                   (mapcat #(vector % (frame %))))))))
+             (->> (:groups ctx)
+                  (mapcat #(:offsets %))
+                  (distinct)
+                  (map frame)))))
 
 
 (defn legacy? [def-info in file-size]
