@@ -1,6 +1,5 @@
 (ns h3m-parser.core
   (:require
-   [clojure.java.io :as io]
    [org.clojars.smee.binary.core :as binary]
    [h3m-parser.h3m :as h3m]
    [h3m-parser.lod :as lod]
