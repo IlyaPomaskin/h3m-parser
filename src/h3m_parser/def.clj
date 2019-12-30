@@ -20,7 +20,8 @@
 
 
 (defn frame-without-compression [size]
-  (b/repeated :ubyte :length size))
+  (codec/cond-codec
+   :data (b/repeated :ubyte :length size)))
 
 
 (defn frame-compressed-line-1 [offset]
