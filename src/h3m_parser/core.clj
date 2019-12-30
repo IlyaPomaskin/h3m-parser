@@ -3,7 +3,7 @@
    [org.clojars.smee.binary.core :as binary]
    [h3m-parser.h3m :as h3m]
    [h3m-parser.lod :as lod]
-   [h3m-parser.def :as def])
+   [h3m-parser.def :as def-file])
   (:import
    [java.io FileInputStream]
    [java.util.zip Inflater InflaterInputStream GZIPInputStream]))
@@ -18,7 +18,7 @@
 
 
 (defn parse-def [in]
-  (binary/decode def/root in))
+  (binary/decode def-file/root in))
 
 
 (defn get-def-stream-from-lod
@@ -37,7 +37,7 @@
          name :name} lod-def-info
         def-stream (get-def-stream-from-lod lod-def-info in)
         def-info (parse-def def-stream)
-        legacy? false ; (def/legacy? def-info def-stream uncompressed-size)
+        legacy? false ; (def-file/legacy? def-info def-stream uncompressed-size)
         ]
     (assoc
      def-info
@@ -46,8 +46,8 @@
 
 
 (def map-objects
-  #{(:terrain def/def-type)
-    (:map def/def-type)})
+  #{(:terrain def-file/def-type)
+    (:map def-file/def-type)})
 
 
 (defn lines->bytes [frame]
