@@ -2,7 +2,9 @@
   (:require [org.clojars.smee.binary.core :as b]
             [clojure.pprint :as pp]
             [h3m-parser.objects :as h3m-objects])
-  (:import org.clojars.smee.binary.core.BinaryIO))
+  (:import org.clojars.smee.binary.core.BinaryIO
+           ; import from smee/binary/java-src/impl
+           impl.LittleEndianDataInputStream))
 
 
 (defn reduce-kvs
@@ -38,7 +40,7 @@
       big-out)))
 
 
-(def int-sized-string (b/compile-codec (b/string "ISO-8859-1" :prefix :int-le)))
+(def int-sized-string (b/string "ISO-8859-1" :prefix :int-le))
 
 
 (def byte->bool (b/compile-codec :byte #(if (true? %1) 1 0) pos?))
@@ -60,6 +62,58 @@
 (def reader-position
   (reify BinaryIO
     (read-data [codec big-in little-in]
-      (.size little-in))
+      (.size ^LittleEndianDataInputStream little-in))
     (write-data [codec big-out little-out value]
       big-out)))
+
+      
+(defn constant [value]
+  (reify BinaryIO
+    (read-data [codec big-in little-in]
+      value)
+    (write-data [codec big-out little-out value]
+      big-out)))
+
+
+(defn offset-assert [expected-offset entity-name]
+  (reify BinaryIO
+    (read-data [codec big-in little-in]
+      (let [current-position (b/read-data reader-position big-in little-in)]
+        (when (not (= current-position expected-offset))
+          (throw
+           (new
+            AssertionError
+            (format
+             "Wrong offset while parsing %s. Expected: %d, current %d"
+             entity-name
+             expected-offset
+             current-position))))))
+    (write-data [codec big-out little-out value]
+      big-out)))
+
+    
+(defn move-cursor-forward [offset]
+  (reify BinaryIO
+    (read-data [codec big-in little-in]
+      (let [current-position (b/read-data reader-position big-in little-in)
+            skip-length (- offset current-position)]
+        (when (pos? skip-length)
+          (println "Need to move cursor. pos:" current-position "should be:" offset)
+          (.skipBytes ^LittleEndianDataInputStream little-in skip-length))))
+    (write-data [codec big-out little-out value]
+      big-out)))
+
+
+(defn read-lines [codec length-key initial-length]
+  (reify BinaryIO
+    (read-data [_ big-in little-in]
+      (loop [length initial-length
+             result []]
+        (let [data (b/read-data codec big-in little-in)
+              next-length (- length (get data length-key))
+              next-result (conj result data)]
+          (if (pos? next-length)
+            (recur next-length next-result)
+            next-result))))
+    (write-data [_ big-out little-out length]
+      nil)))
