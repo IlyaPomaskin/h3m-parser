@@ -131,17 +131,18 @@
 
 
 (defn legacy? [def-info in file-size]
-  (let [stream (new BufferedInputStream in file-size)]
+  (let [stream (new BufferedInputStream in file-size)
+        {groups :groups
+         content-start :content-start} def-info]
     (.mark stream file-size)
     (boolean
-     (->> def-info
-          :groups
+     (->> groups
           (mapcat #(:offsets %))
           (sort)
           (reverse)
           (some (fn [offset]
                   (.reset stream)
-                  (.skip stream (long (- offset (:content-start def-info))))
+                  (.skip stream (long (- offset content-start)))
                   (>
                    (+
                     offset
