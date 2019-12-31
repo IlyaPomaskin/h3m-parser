@@ -125,7 +125,7 @@
              (->> (:groups ctx)
                   (mapcat #(:offsets %))
                   (distinct)
-                  (map frame)))))
+                  (mapv frame)))))
 
 
 ; legacy def files have less fields in frame header
