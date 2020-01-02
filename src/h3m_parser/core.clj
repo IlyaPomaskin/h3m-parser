@@ -23,9 +23,10 @@
 
 (defn get-def-stream-from-lod
   [lod-def-info ^FileInputStream in]
-  (let [{compressed-size :compressed-size
+  (let [{size :size
+         compressed-size :compressed-size
          offset :offset} lod-def-info]
     (.position (.getChannel in) (long offset))
     (if (pos? compressed-size)
       (new InflaterInputStream in (new Inflater) compressed-size)
-      in)))
+      (new BufferedInputStream in size))))
