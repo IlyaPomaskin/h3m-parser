@@ -125,6 +125,7 @@
              (->> (:groups ctx)
                   (mapcat #(:offsets %))
                   (distinct)
+                  (sort)
                   (mapv frame)))))
 
 
