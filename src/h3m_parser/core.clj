@@ -5,7 +5,7 @@
    [h3m-parser.lod :as lod]
    [h3m-parser.def :as def-file])
   (:import
-   [java.io FileInputStream]
+   [java.io FileInputStream BufferedInputStream]
    [java.util.zip Inflater InflaterInputStream GZIPInputStream]))
 
 
