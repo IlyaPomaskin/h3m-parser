@@ -1,4 +1,4 @@
-(defproject h3m-parser "1.2.2"
+(defproject h3m-parser "1.2.3"
   :description "Library for parsing *.h3m (Heroes of Might and Magic III maps)"
   :url "https://github.com/IlyaPomaskin/h3m-parser/"
   :global-vars {clojure.core/*warn-on-reflection* true}
