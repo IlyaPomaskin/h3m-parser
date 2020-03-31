@@ -18,7 +18,7 @@
   "Codec for selecting nested codec based on map value"
   [& kvs]
   (reify BinaryIO
-    (read-data [_ big-in little-in]
+    (read-data [codec big-in little-in]
       (reduce-kvs
        (fn [decoded-map param-key param-config]
          (if-some [codec (if (fn? param-config)
@@ -36,7 +36,7 @@
        {}
        kvs))
 
-    (write-data [_ big-out little-out value-map]
+    (write-data [codec big-out little-out value-map]
       big-out)))
 
 
@@ -66,7 +66,7 @@
     (write-data [codec big-out little-out value]
       big-out)))
 
-      
+
 (defn constant [value]
   (reify BinaryIO
     (read-data [codec big-in little-in]
@@ -91,7 +91,7 @@
     (write-data [codec big-out little-out value]
       big-out)))
 
-    
+
 (defn move-cursor-forward [offset]
   (reify BinaryIO
     (read-data [codec big-in little-in]

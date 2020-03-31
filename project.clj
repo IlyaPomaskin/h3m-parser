@@ -1,4 +1,4 @@
-(defproject h3m-parser "1.2.5"
+(defproject h3m-parser "1.2.6"
   :description "Library for parsing *.h3m (Heroes of Might and Magic III maps)"
   :url "https://github.com/IlyaPomaskin/h3m-parser/"
   :license {:name "GPL-3.0"
