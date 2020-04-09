@@ -24,14 +24,9 @@
          (if-some [codec (if (fn? param-config)
                            (param-config decoded-map)
                            param-config)]
-           (try
-             (some-> codec
-                     (b/read-data big-in little-in)
-                     (as-> v (assoc decoded-map param-key v)))
-             (catch java.io.EOFException e
-               (println ["param-key" param-key])
-               (println ["decoded-map" decoded-map])
-               (throw e)))
+           (some-> codec
+                   (b/read-data big-in little-in)
+                   (as-> v (assoc decoded-map param-key v)))
            decoded-map))
        {}
        kvs))
