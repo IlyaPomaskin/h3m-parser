@@ -293,7 +293,9 @@
               [:byte :byte :byte])))
 
 
-(def object-witch-hut :int-le)
+(def object-witch-hut
+  (b/ordered-map
+   :skill :int-le))
 
 
 (def object-scholar
@@ -367,7 +369,9 @@
    :unknown-5 (b/repeated :byte :length 3)))
 
 
-(def object-mine :int-le)
+(def object-skip-int
+  (b/ordered-map
+   :unknown :int-le))
 
 
 (def object-creature-generator
@@ -423,17 +427,11 @@
    :quest quest))
 
 
-(def object-shipyard :int-le)
-
-
 (def object-hero-placeholder
   (codec/cond-codec
    :unknown-1 :byte
    :hero-type-id :ubyte
    :unknown-2 #(when (= 255 (:hero-type-id %1)) :byte)))
-
-
-(def object-lighthous :int-le)
 
 
 (defn def->codec
@@ -482,12 +480,14 @@
     :random-town object-town
     :town object-town
 
-    :mine object-mine
-    :abandoned-mine object-mine
-    :shrine-of-magic-incantation object-mine
-    :shrine-of-magic-gesture object-mine
-    :shrine-of-magic-thought object-mine
-    :grail object-mine
+    :mine object-skip-int
+    :abandoned-mine object-skip-int
+    :shrine-of-magic-incantation object-skip-int
+    :shrine-of-magic-gesture object-skip-int
+    :shrine-of-magic-thought object-skip-int
+    :grail object-skip-int
+    :shipyard object-skip-int
+    :lighthouse object-skip-int
 
     :creature-generator1 object-creature-generator
     :creature-generator2 object-creature-generator
@@ -502,11 +502,7 @@
 
     :quest-guard object-quest-guard
 
-    :shipyard object-shipyard
-
     :hero-placeholder object-hero-placeholder
-
-    :lighthouse object-lighthous
     nil))
 
 
