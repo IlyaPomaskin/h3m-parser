@@ -5,5 +5,6 @@
             :url "https://www.gnu.org/licenses/gpl-3.0.en.html"}
   :deploy-repositories [["clojars" {:sign-releases false}]]
   :exclusions [org.clojure/clojure]
-  :dependencies [[smee/binary "0.5.5"]]
+  :dependencies [[smee/binary "0.5.5"]
+                 [cheshire "5.10.0"]]
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.10.0"]]}})
